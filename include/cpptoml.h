@@ -1419,12 +1419,19 @@ class table : public base
     {
 #ifndef CPPTOML_NO_EXCEPTIONS
         try
-#endif
         {
             return get_impl<T>(get(key));
         }
-#ifndef CPPTOML_NO_EXCEPTIONS
         catch (const std::out_of_range&)
+        {
+            return {};
+        }
+#else
+        if (contains(key))
+        {
+            return get_impl<T>(get(key));
+        }
+        else
         {
             return {};
         }
@@ -1441,12 +1448,19 @@ class table : public base
     {
 #ifndef CPPTOML_NO_EXCEPTIONS
         try
-#endif
         {
             return get_impl<T>(get_qualified(key));
         }
-#ifndef CPPTOML_NO_EXCEPTIONS
         catch (const std::out_of_range&)
+        {
+            return {};
+        }
+#else
+        if (contains_qualified(key))
+        {
+            return get_impl<T>(get_qualified(key));
+        }
+        else
         {
             return {};
         }
@@ -1585,10 +1599,14 @@ class table : public base
             table = table->get_table(part).get();
             if (!table)
             {
+#ifndef CPPTOML_NO_EXCEPTIONS
                 if (!p)
                     return false;
 
-                THROW_(std::out_of_range, key + " is not a valid key");
+                throw std::out_of_range{key + " is not a valid key"};
+#else
+                return false;
+#endif
             }
         }
 
