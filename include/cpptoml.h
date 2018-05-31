@@ -62,15 +62,15 @@ using string_to_base_map
 #define THROW2_(exception, reason, input_line)                                 \
     die(reason, input_line, __FILE__, __LINE__)
 
-[[noreturn]] void die(const std::string& reason, const std::string& file,
-                      const int line) {
+[[noreturn]] inline void die(const std::string& reason, const std::string& file,
+                             const int line) {
     std::cerr << file << ":" << std::to_string(line) << ": error: " << reason
               << std::endl;
     std::exit(1);
 }
 
-[[noreturn]] void die(const std::string& reason, const int input_line,
-                      const std::string& file, const int line)
+[[noreturn]] inline void die(const std::string& reason, const int input_line,
+                             const std::string& file, const int line)
 {
     std::cerr << file << ":" << std::to_string(line) << ": error: " << reason
               << " at line " << input_line << std::endl;
