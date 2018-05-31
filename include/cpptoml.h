@@ -62,15 +62,15 @@ using string_to_base_map
 #define THROW2_(exception, reason, input_line)                                 \
     die(reason, input_line, __FILE__, __LINE__)
 
-[[noreturn]] void die(const std::string& reason, const std::string& file,
-                      const int line) {
+[[noreturn]] inline void die(const std::string& reason, const std::string& file,
+                             const int line) {
     std::cerr << file << ":" << std::to_string(line) << ": error: " << reason
               << std::endl;
     std::exit(1);
 }
 
-[[noreturn]] void die(const std::string& reason, const int input_line,
-                      const std::string& file, const int line)
+[[noreturn]] inline void die(const std::string& reason, const int input_line,
+                             const std::string& file, const int line)
 {
     std::cerr << file << ":" << std::to_string(line) << ": error: " << reason
               << " at line " << input_line << std::endl;
@@ -1419,12 +1419,19 @@ class table : public base
     {
 #ifndef CPPTOML_NO_EXCEPTIONS
         try
-#endif
         {
             return get_impl<T>(get(key));
         }
-#ifndef CPPTOML_NO_EXCEPTIONS
         catch (const std::out_of_range&)
+        {
+            return {};
+        }
+#else
+        if (contains(key))
+        {
+            return get_impl<T>(get(key));
+        }
+        else
         {
             return {};
         }
@@ -1441,12 +1448,19 @@ class table : public base
     {
 #ifndef CPPTOML_NO_EXCEPTIONS
         try
-#endif
         {
             return get_impl<T>(get_qualified(key));
         }
-#ifndef CPPTOML_NO_EXCEPTIONS
         catch (const std::out_of_range&)
+        {
+            return {};
+        }
+#else
+        if (contains_qualified(key))
+        {
+            return get_impl<T>(get_qualified(key));
+        }
+        else
         {
             return {};
         }
@@ -1585,10 +1599,14 @@ class table : public base
             table_ = table_->get_table(part).get();
             if (!table_)
             {
+#ifndef CPPTOML_NO_EXCEPTIONS
                 if (!p)
                     return false;
 
-                THROW_(std::out_of_range, key + " is not a valid key");
+                throw std::out_of_range{key + " is not a valid key"};
+#else
+                return false;
+#endif
             }
         }
 
